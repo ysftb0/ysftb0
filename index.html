@@ -1,0 +1,354 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#10091f">
+  <title>YSFTB0 — System Boot</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --accent: #b58aff;
+      --accent-2: #7c4dff;
+      --background: #10091f;
+      --glass: rgba(30, 19, 53, .76);
+      --text: #eee7ff;
+      --muted: #9888b8;
+      --green: #8dffbd;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(ellipse at 20% 15%, #492477 0%, transparent 45%),
+        radial-gradient(ellipse at 85% 85%, #25145a 0%, transparent 45%),
+        var(--background);
+      overflow: hidden;
+    }
+
+    .glow {
+      position: fixed;
+      width: 280px;
+      height: 280px;
+      border-radius: 50%;
+      background: #965cff;
+      filter: blur(120px);
+      opacity: .19;
+      pointer-events: none;
+    }
+
+    .glow.one {
+      top: -100px;
+      left: -80px;
+    }
+
+    .glow.two {
+      bottom: -120px;
+      right: -70px;
+      background: #593cff;
+    }
+
+    .terminal {
+      position: relative;
+      width: min(780px, 100%);
+      height: min(520px, 85vh);
+      min-height: 390px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid rgba(190, 151, 255, .25);
+      border-radius: 22px;
+      background: var(--glass);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      box-shadow:
+        0 25px 100px rgba(0, 0, 0, .5),
+        0 0 50px rgba(145, 88, 255, .13);
+    }
+
+    .titlebar {
+      height: 58px;
+      display: flex;
+      align-items: center;
+      padding: 0 19px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.035);
+      gap: 9px;
+      flex-shrink: 0;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .red { background: #ff647c; }
+    .yellow { background: #ffd36a; }
+    .green-dot { background: #65e9a2; }
+
+    .window-title {
+      margin-left: auto;
+      font-size: 12px;
+      letter-spacing: 1.5px;
+      color: #c9b9e9;
+      font-weight: 700;
+    }
+
+    .terminal-body {
+      flex: 1;
+      min-height: 0;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand {
+      font-size: clamp(25px, 6vw, 38px);
+      font-weight: 850;
+      letter-spacing: 3px;
+      background: linear-gradient(100deg, #fff, #c5a1ff, #8e63ff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 0 30px rgba(165, 110, 255, .2);
+    }
+
+    .subtitle {
+      margin-top: 5px;
+      margin-bottom: 22px;
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--muted);
+    }
+
+    .output {
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.85;
+      color: #cbbce7;
+      overflow-wrap: anywhere;
+    }
+
+    .line {
+      animation: appear .2s ease-out;
+    }
+
+    .line.green { color: var(--green); }
+    .line.purple { color: #c49bff; }
+    .line.muted { color: #786b94; }
+    .line.blue { color: #91caff; }
+
+    @keyframes appear {
+      from {
+        opacity: 0;
+        transform: translateY(5px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .progress-section {
+      padding-top: 18px;
+      flex-shrink: 0;
+    }
+
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 11px;
+      color: #b8a7d7;
+      letter-spacing: 1px;
+    }
+
+    .percent {
+      color: #d8c2ff;
+      font-weight: 800;
+    }
+
+    .progress-track {
+      height: 7px;
+      width: 100%;
+      overflow: hidden;
+      border-radius: 20px;
+      background: rgba(255,255,255,.09);
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #7945e8, #c59aff);
+      box-shadow: 0 0 18px #a16aff;
+      transition: width .35s ease;
+    }
+
+    .footer {
+      padding-top: 17px;
+      text-align: center;
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: #75668f;
+      flex-shrink: 0;
+    }
+
+    @media(max-width: 480px) {
+      .terminal {
+        height: 78vh;
+        border-radius: 17px;
+      }
+
+      .terminal-body {
+        padding: 17px;
+      }
+
+      .output {
+        font-size: 11px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="glow one"></div>
+  <div class="glow two"></div>
+
+  <main class="terminal">
+    <header class="titlebar">
+      <span class="dot red"></span>
+      <span class="dot yellow"></span>
+      <span class="dot green-dot"></span>
+      <span class="window-title">YSFTB0 SYSTEM BOOT</span>
+    </header>
+
+    <section class="terminal-body">
+      <div class="brand">YSFTB0</div>
+      <div class="subtitle">OFFLINE CACHE INITIALIZATION</div>
+
+      <div class="output" id="output"></div>
+
+      <div class="progress-section">
+        <div class="progress-info">
+          <span id="progressLabel">INITIALIZING...</span>
+          <span class="percent" id="percent">0%</span>
+        </div>
+
+        <div class="progress-track">
+          <div class="progress-fill" id="progress"></div>
+        </div>
+      </div>
+
+      <div class="footer">YSFTB0 · SYSTEM INTERFACE</div>
+    </section>
+  </main>
+
+  <script>
+    const output = document.getElementById("output");
+    const progress = document.getElementById("progress");
+    const percent = document.getElementById("percent");
+    const progressLabel = document.getElementById("progressLabel");
+
+    const wait = ms =>
+      new Promise(resolve => setTimeout(resolve, ms));
+
+    function print(message, type = "") {
+      const line = document.createElement("div");
+      line.className = "line " + type;
+      line.textContent = message;
+
+      output.appendChild(line);
+      output.scrollTop = output.scrollHeight;
+    }
+
+    const bootMessages = [
+      [5, "STARTING SYSTEM", "[SYS] YSFTB0 boot sequence started.", "purple"],
+      [12, "CHECKING FILES", "[SYS] Checking local interface files...", ""],
+      [20, "CHECKING STORAGE", "[CACHE] Inspecting browser cache...", ""],
+      [29, "CACHE INITIALIZATION", "[CACHE] Preparing offline resources...", "purple"],
+      [38, "VERIFYING RESOURCES", "[CACHE] Checking required page resources...", ""],
+      [47, "CHECKING SERVICE WORKER", "[SW] Checking offline service worker support...", ""],
+      [56, "REGISTERING OFFLINE MODE", "[SW] Registering offline support...", "blue"],
+      [65, "CHECKING INTERFACE", "[UI] Loading YSFTB0 interface...", ""],
+      [73, "PREPARING TERMINAL", "[UI] Preparing terminal environment...", "purple"],
+      [81, "VERIFYING CACHE", "[CACHE] Offline resource verification completed.", "green"],
+      [89, "FINALIZING", "[SYS] Finalizing initialization...", ""],
+      [96, "READY", "[SYS] Interface is ready.", "green"],
+      [100, "COMPLETE", "[SYS] Initialization completed.", "green"]
+    ];
+
+    async function registerOffline() {
+      if (!("serviceWorker" in navigator)) {
+        print("[SW] Service Worker is not supported.", "muted");
+        return false;
+      }
+
+      try {
+        await navigator.serviceWorker.register("./sw.js");
+        await navigator.serviceWorker.ready;
+        print("[SW] Offline support registered.", "green");
+        return true;
+      } catch (error) {
+        print("[SW] Offline registration failed.", "muted");
+        console.warn(error);
+        return false;
+      }
+    }
+
+    async function startLoading() {
+      // إذا اكتملت التهيئة سابقاً، تجاوز صفحة التحميل.
+      if (localStorage.getItem("ysftb0-boot-complete") === "1") {
+        window.location.replace("./jb.html");
+        return;
+      }
+
+      print("[SYS] Welcome to YSFTB0.", "purple");
+      print("[SYS] Starting first-time initialization...", "");
+
+      await wait(350);
+
+      // نسجل Service Worker وننتظر حتى يصبح جاهزاً.
+      await registerOffline();
+
+      for (const [value, label, message, type] of bootMessages) {
+        progress.style.width = value + "%";
+        percent.textContent = value + "%";
+        progressLabel.textContent = label;
+
+        print(message, type);
+        await wait(430);
+      }
+
+      print("----------------------------------------", "muted");
+      print("[SYS] Opening YSFTB0 interface...", "blue");
+
+      progressLabel.textContent = "SYSTEM READY";
+
+      // نحفظ حالة اكتمال التهيئة.
+      localStorage.setItem("ysftb0-boot-complete", "1");
+
+      await wait(700);
+      window.location.replace("./jb.html");
+    }
+
+    startLoading();
+  </script>
+</body>
+</html>
