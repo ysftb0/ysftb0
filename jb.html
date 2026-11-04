@@ -9,6 +9,7 @@
 
 <style>
 
+
 *{
  box-sizing:border-box;
 }
@@ -17,11 +18,12 @@ html,body{
  width:100%;
  height:100%;
  margin:0;
+ padding:0;
  background:#000;
  color:#d0d0d0;
  font-family:Menlo,Monaco,Consolas,monospace;
- font-size:20px;
- font-weight:800;
+ font-size:25px;
+ font-weight:900;
  text-transform:uppercase;
 }
 
@@ -32,7 +34,8 @@ body{
 #terminal{
  width:100%;
  height:100%;
- padding:25px 18px 35px;
+ margin:0;
+ padding:0 12px 10px;
  overflow-y:auto;
  overflow-x:hidden;
  white-space:pre-wrap;
@@ -46,11 +49,14 @@ body{
 }
 
 .line{
- line-height:36px;
- min-height:36px;
- font-size:20px;
- font-weight:800;
- letter-spacing:.5px;
+ display:block;
+ margin:0;
+ padding:0;
+ line-height:1.18;
+ min-height:0;
+ font-size:25px;
+ font-weight:900;
+ letter-spacing:0;
  text-align:left;
 }
 
@@ -60,10 +66,11 @@ body{
  color:#fff;
  font-size:34px;
  font-weight:900;
- letter-spacing:1px;
- line-height:48px;
+ letter-spacing:.5px;
+ line-height:1.18;
  text-align:left;
- margin:0 0 25px;
+ margin:0;
+ padding:0;
 }
 
 .info{color:#d0d0d0}
@@ -74,18 +81,17 @@ body{
 
 .cursor{
  display:inline-block;
- width:11px;
- height:22px;
+ width:12px;
+ height:25px;
  background:#fff;
  animation:blink 1s steps(2) infinite;
- vertical-align:-4px;
+ vertical-align:-3px;
 }
 
 @keyframes blink{
  50%{opacity:0}
 }
 
-}
 </style>
 </head>
 
@@ -94,9 +100,56 @@ body{
 <div id="terminal">
  <div class="line header">14:00 Webkit By ysftb0</div>
 </div>
+<script>
+ (() => {
+  const originalLog = console.log;
+  const originalError = console.error;
+  const originalWarn = console.warn;
+  
+  function showConsole(type, args) {
+   const terminal = document.getElementById("terminal");
+   if (!terminal) return;
+   
+   const line = document.createElement("div");
+   line.className = "line " + (
+    type === "ERROR" ? "fail" :
+    type === "WARN" ? "warn" : "info"
+   );
+   
+   line.textContent = `[${type}] ` +
+    args.map(value =>
+     typeof value === "object" ?
+     JSON.stringify(value) :
+     String(value)
+    ).join(" ");
+   
+   terminal.appendChild(line);
+   terminal.scrollTop = terminal.scrollHeight;
+  }
+  
+  console.log = (...args) => {
+   originalLog.apply(console, args);
+   showConsole("LOG", args);
+  };
+  
+  console.warn = (...args) => {
+   originalWarn.apply(console, args);
+   showConsole("WARN", args);
+  };
+  
+  console.error = (...args) => {
+   originalError.apply(console, args);
+   showConsole("ERROR", args);
+  };
+ })();
+</script>
+
+<script type="module" src="./jb.js"></script>
 <script type="module">
  import "./jb.js";
- (()=>{
+</script>
+<script>
+(()=>{
  "use strict";
 
  const terminal=document.getElementById("terminal");
@@ -169,5 +222,6 @@ body{
 
 })();
 </script>
+
 </body>
 </html>
