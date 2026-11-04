@@ -96,6 +96,78 @@ body{
 </div>
 <script type="module">
  import "./jb.js";
+ (()=>{
+ "use strict";
+
+ const terminal=document.getElementById("terminal");
+ let cursor=null;
+
+ const categories={
+  "PROOF-OK":"ok",
+  "PRIMITIVE-OK":"ok",
+  "PRIMITIVE-ONLY":"ok",
+  "PROOF-FAIL":"fail",
+  "JB-THREW":"fail",
+  "AG-FAIL":"fail",
+  "FW-UNSUPPORTED":"fail",
+  "RETRY":"warn",
+  "WAIT":"warn",
+  "INFO":"info",
+  "FW":"info",
+  "BASES":"info",
+  "STUBS":"info",
+  "PAIR-STATUS":"info",
+  "JB-END":"muted",
+  "OK":"ok",
+  "FAIL":"fail"
+ };
+
+ function add(tag,detail=""){
+  const line=document.createElement("div");
+  line.className="line "+(categories[tag]||"info");
+
+  line.textContent=
+   String(tag)+(detail?"  "+String(detail):"");
+
+  if(cursor){
+   terminal.insertBefore(line,cursor);
+  }else{
+   terminal.appendChild(line);
+  }
+
+  terminal.scrollTop=terminal.scrollHeight;
+ }
+
+ window.ysftb0Log=function(tag,detail){
+  add(String(tag),String(detail??""));
+ };
+
+ window.ysftb0Status=function(status,message){
+  const tag=
+   status==="success"?"OK":
+   status==="failure"?"FAIL":
+   "INFO";
+
+  add(tag,message);
+ };
+
+ window.addEventListener("error",event=>{
+  add("JB-THREW",event.message||"Unknown JavaScript error");
+ });
+
+ window.addEventListener("unhandledrejection",event=>{
+  add("JB-THREW",String(event.reason||"Promise rejected"));
+ });
+
+ add("INFO","Initializing terminal...");
+ add("OK","Terminal ready");
+ add("WAIT","Waiting for diagnostic events...");
+
+ cursor=document.createElement("span");
+ cursor.className="cursor";
+ terminal.appendChild(cursor);
+
+})();
 </script>
 </body>
 </html>
