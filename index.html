@@ -2,353 +2,208 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#10091f">
-  <title>YSFTB0 — System Boot</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#000000">
+<title>14:00 Webkit By ysftb0</title>
 
-  <style>
-    * {
-      box-sizing: border-box;
-    }
+<style>
+*{
+ box-sizing:border-box;
+}
 
-    :root {
-      --accent: #b58aff;
-      --accent-2: #7c4dff;
-      --background: #10091f;
-      --glass: rgba(30, 19, 53, .76);
-      --text: #eee7ff;
-      --muted: #9888b8;
-      --green: #8dffbd;
-    }
+html,body{
+ width:100%;
+ height:100%;
+ margin:0;
+ background:#000;
+ color:#d0d0d0;
+ font-family:Menlo,Monaco,Consolas,monospace;
+ font-size:20px;
+ font-weight:800;
+ text-transform:uppercase;
+}
 
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background:
-        radial-gradient(ellipse at 20% 15%, #492477 0%, transparent 45%),
-        radial-gradient(ellipse at 85% 85%, #25145a 0%, transparent 45%),
-        var(--background);
-      overflow: hidden;
-    }
+body{
+ overflow:hidden;
+}
 
-    .glow {
-      position: fixed;
-      width: 280px;
-      height: 280px;
-      border-radius: 50%;
-      background: #965cff;
-      filter: blur(120px);
-      opacity: .19;
-      pointer-events: none;
-    }
+#terminal{
+ width:100%;
+ height:100%;
+ padding:25px 18px 35px;
+ overflow-y:auto;
+ overflow-x:hidden;
+ white-space:pre-wrap;
+ overflow-wrap:anywhere;
+ text-align:left;
+ scrollbar-width:none;
+}
 
-    .glow.one {
-      top: -100px;
-      left: -80px;
-    }
+#terminal::-webkit-scrollbar{
+ display:none;
+}
 
-    .glow.two {
-      bottom: -120px;
-      right: -70px;
-      background: #593cff;
-    }
+.line{
+ line-height:36px;
+ min-height:36px;
+ font-size:20px;
+ font-weight:800;
+ letter-spacing:.5px;
+}
 
-    .terminal {
-      position: relative;
-      width: min(780px, 100%);
-      height: min(520px, 85vh);
-      min-height: 390px;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      border: 1px solid rgba(190, 151, 255, .25);
-      border-radius: 22px;
-      background: var(--glass);
-      backdrop-filter: blur(28px);
-      -webkit-backdrop-filter: blur(28px);
-      box-shadow:
-        0 25px 100px rgba(0, 0, 0, .5),
-        0 0 50px rgba(145, 88, 255, .13);
-    }
+.header{
+ display:block;
+ width:100%;
+ color:#fff;
+ font-size:34px;
+ font-weight:900;
+ letter-spacing:1px;
+ line-height:48px;
+ text-align:left;
+ margin:0 0 25px;
+}
 
-    .titlebar {
-      height: 58px;
-      display: flex;
-      align-items: center;
-      padding: 0 19px;
-      border-bottom: 1px solid rgba(255,255,255,.08);
-      background: rgba(255,255,255,.035);
-      gap: 9px;
-      flex-shrink: 0;
-    }
+.info{color:#d0d0d0}
+.ok{color:#8fe0a5}
+.fail{color:#ff7777}
+.warn{color:#e9c477}
+.muted{color:#777}
 
-    .dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-    }
+.cursor{
+ display:inline-block;
+ width:11px;
+ height:22px;
+ background:#fff;
+ animation:blink 1s steps(2) infinite;
+ vertical-align:-4px;
+}
 
-    .red { background: #ff647c; }
-    .yellow { background: #ffd36a; }
-    .green-dot { background: #65e9a2; }
-
-    .window-title {
-      margin-left: auto;
-      font-size: 12px;
-      letter-spacing: 1.5px;
-      color: #c9b9e9;
-      font-weight: 700;
-    }
-
-    .terminal-body {
-      flex: 1;
-      min-height: 0;
-      padding: 22px;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .brand {
-      font-size: clamp(25px, 6vw, 38px);
-      font-weight: 850;
-      letter-spacing: 3px;
-      background: linear-gradient(100deg, #fff, #c5a1ff, #8e63ff);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      text-shadow: 0 0 30px rgba(165, 110, 255, .2);
-    }
-
-    .subtitle {
-      margin-top: 5px;
-      margin-bottom: 22px;
-      font-size: 11px;
-      letter-spacing: 2px;
-      color: var(--muted);
-    }
-
-    .output {
-      flex: 1;
-      min-height: 0;
-      overflow: hidden;
-      font-family: "SFMono-Regular", Consolas, monospace;
-      font-size: 12px;
-      line-height: 1.85;
-      color: #cbbce7;
-      overflow-wrap: anywhere;
-    }
-
-    .line {
-      animation: appear .2s ease-out;
-    }
-
-    .line.green { color: var(--green); }
-    .line.purple { color: #c49bff; }
-    .line.muted { color: #786b94; }
-    .line.blue { color: #91caff; }
-
-    @keyframes appear {
-      from {
-        opacity: 0;
-        transform: translateY(5px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .progress-section {
-      padding-top: 18px;
-      flex-shrink: 0;
-    }
-
-    .progress-info {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 10px;
-      font-size: 11px;
-      color: #b8a7d7;
-      letter-spacing: 1px;
-    }
-
-    .percent {
-      color: #d8c2ff;
-      font-weight: 800;
-    }
-
-    .progress-track {
-      height: 7px;
-      width: 100%;
-      overflow: hidden;
-      border-radius: 20px;
-      background: rgba(255,255,255,.09);
-    }
-
-    .progress-fill {
-      height: 100%;
-      width: 0%;
-      border-radius: inherit;
-      background: linear-gradient(90deg, #7945e8, #c59aff);
-      box-shadow: 0 0 18px #a16aff;
-      transition: width .35s ease;
-    }
-
-    .footer {
-      padding-top: 17px;
-      text-align: center;
-      font-size: 10px;
-      letter-spacing: 2px;
-      color: #75668f;
-      flex-shrink: 0;
-    }
-
-    @media(max-width: 480px) {
-      .terminal {
-        height: 78vh;
-        border-radius: 17px;
-      }
-
-      .terminal-body {
-        padding: 17px;
-      }
-
-      .output {
-        font-size: 11px;
-      }
-    }
-  </style>
+@keyframes blink{
+ 50%{opacity:0}
+}
+</style>
 </head>
 
 <body>
-  <div class="glow one"></div>
-  <div class="glow two"></div>
 
-  <main class="terminal">
-    <header class="titlebar">
-      <span class="dot red"></span>
-      <span class="dot yellow"></span>
-      <span class="dot green-dot"></span>
-      <span class="window-title">YSFTB0 SYSTEM BOOT</span>
-    </header>
+<div id="terminal">
+ <div class="line header">14:00 Webkit By ysftb0</div>
+</div>
 
-    <section class="terminal-body">
-      <div class="brand">YSFTB0</div>
-      <div class="subtitle">OFFLINE CACHE INITIALIZATION</div>
+<script>
+(async()=>{
+"use strict";
 
-      <div class="output" id="output"></div>
+const terminal=document.getElementById("terminal");
 
-      <div class="progress-section">
-        <div class="progress-info">
-          <span id="progressLabel">INITIALIZING...</span>
-          <span class="percent" id="percent">0%</span>
-        </div>
+function log(tag,message="",type="info"){
+ const line=document.createElement("div");
+ line.className="line "+type;
+ line.textContent=message
+  ?tag+"  "+message
+  :tag;
 
-        <div class="progress-track">
-          <div class="progress-fill" id="progress"></div>
-        </div>
-      </div>
+ terminal.appendChild(line);
+ terminal.scrollTop=terminal.scrollHeight;
+}
 
-      <div class="footer">YSFTB0 · SYSTEM INTERFACE</div>
-    </section>
-  </main>
+function delay(ms){
+ return new Promise(resolve=>setTimeout(resolve,ms));
+}
 
-  <script>
-    const output = document.getElementById("output");
-    const progress = document.getElementById("progress");
-    const percent = document.getElementById("percent");
-    const progressLabel = document.getElementById("progressLabel");
+log("INITIALIZING","CACHE CHECK");
+await delay(350);
 
-    const wait = ms =>
-      new Promise(resolve => setTimeout(resolve, ms));
+if(!("serviceWorker" in navigator)){
+ log("WARNING","SERVICE WORKER NOT SUPPORTED","warn");
+}
 
-    function print(message, type = "") {
-      const line = document.createElement("div");
-      line.className = "line " + type;
-      line.textContent = message;
+if(!("caches" in window)){
+ log("ERROR","CACHE API NOT AVAILABLE","fail");
+ return;
+}
 
-      output.appendChild(line);
-      output.scrollTop = output.scrollHeight;
-    }
+let cacheReady=false;
 
-    const bootMessages = [
-      [5, "STARTING SYSTEM", "[SYS] YSFTB0 boot sequence started.", "purple"],
-      [12, "CHECKING FILES", "[SYS] Checking local interface files...", ""],
-      [20, "CHECKING STORAGE", "[CACHE] Inspecting browser cache...", ""],
-      [29, "CACHE INITIALIZATION", "[CACHE] Preparing offline resources...", "purple"],
-      [38, "VERIFYING RESOURCES", "[CACHE] Checking required page resources...", ""],
-      [47, "CHECKING SERVICE WORKER", "[SW] Checking offline service worker support...", ""],
-      [56, "REGISTERING OFFLINE MODE", "[SW] Registering offline support...", "blue"],
-      [65, "CHECKING INTERFACE", "[UI] Loading YSFTB0 interface...", ""],
-      [73, "PREPARING TERMINAL", "[UI] Preparing terminal environment...", "purple"],
-      [81, "VERIFYING CACHE", "[CACHE] Offline resource verification completed.", "green"],
-      [89, "FINALIZING", "[SYS] Finalizing initialization...", ""],
-      [96, "READY", "[SYS] Interface is ready.", "green"],
-      [100, "COMPLETE", "[SYS] Initialization completed.", "green"]
-    ];
+try{
+ const cacheNames=await caches.keys();
 
-    async function registerOffline() {
-      if (!("serviceWorker" in navigator)) {
-        print("[SW] Service Worker is not supported.", "muted");
-        return false;
-      }
+ if(cacheNames.length){
+  log("CACHE","STORAGE DETECTED","ok");
 
-      try {
-        await navigator.serviceWorker.register("./sw.js");
-        await navigator.serviceWorker.ready;
-        print("[SW] Offline support registered.", "green");
-        return true;
-      } catch (error) {
-        print("[SW] Offline registration failed.", "muted");
-        console.warn(error);
-        return false;
-      }
-    }
+  for(const name of cacheNames){
+   const cache=await caches.open(name);
+   const keys=await cache.keys();
 
-    async function startLoading() {
-      // إذا اكتملت التهيئة سابقاً، تجاوز صفحة التحميل.
-      if (localStorage.getItem("ysftb0-boot-complete") === "1") {
-        window.location.replace("./jb.html");
-        return;
-      }
+   log("CACHE",name,"info");
+   log("FILES",String(keys.length),"info");
+  }
+ }else{
+  log("CACHE","NO CACHE FOUND","warn");
+ }
 
-      print("[SYS] Welcome to YSFTB0.", "purple");
-      print("[SYS] Starting first-time initialization...", "");
+ const response=await fetch("./jb.html",{
+  method:"GET",
+  cache:"no-cache"
+ });
 
-      await wait(350);
+ if(!response.ok){
+  throw new Error("HTTP "+response.status);
+ }
 
-      // نسجل Service Worker وننتظر حتى يصبح جاهزاً.
-      await registerOffline();
+ const html=await response.text();
 
-      for (const [value, label, message, type] of bootMessages) {
-        progress.style.width = value + "%";
-        percent.textContent = value + "%";
-        progressLabel.textContent = label;
+ if(!html.trim()){
+  throw new Error("EMPTY FILE");
+ }
 
-        print(message, type);
-        await wait(430);
-      }
+ cacheReady=true;
+ log("JB.HTML","FILE AVAILABLE","ok");
 
-      print("----------------------------------------", "muted");
-      print("[SYS] Opening YSFTB0 interface...", "blue");
+}catch(error){
+ log("CACHE ERROR",error.message,"fail");
+}
 
-      progressLabel.textContent = "SYSTEM READY";
+if(cacheReady){
+ log("STATUS","READY","ok");
+ log("REDIRECT","OPENING JB.HTML","info");
 
-      // نحفظ حالة اكتمال التهيئة.
-      localStorage.setItem("ysftb0-boot-complete", "1");
+ await delay(500);
+ location.replace("./jb.html");
+ return;
+}
 
-      await wait(700);
-      window.location.replace("./jb.html");
-    }
+log("RETRY","ONE RETRY IN 2 SECONDS","warn");
+await delay(2000);
 
-    startLoading();
-  </script>
+try{
+ const response=await fetch("./jb.html",{
+  method:"GET",
+  cache:"reload"
+ });
+
+ if(!response.ok){
+  throw new Error("HTTP "+response.status);
+ }
+
+ const html=await response.text();
+
+ if(!html.trim()){
+  throw new Error("EMPTY FILE");
+ }
+
+ log("RETRY","SUCCESS","ok");
+ await delay(500);
+ location.replace("./jb.html");
+
+}catch(error){
+ log("FAILED",error.message,"fail");
+ log("INFO","CHECK YOUR FILES AND CACHE","muted");
+}
+
+})();
+</script>
+
 </body>
 </html>
